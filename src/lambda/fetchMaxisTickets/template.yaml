@@ -1,0 +1,133 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Lambda function to fetch unactioned tickets from Maxis API
+
+Parameters:
+  MaxisEndpoint:
+    Type: String
+    Default: https://maxis-service-integ-pdx.amazon.com
+    Description: Maxis API endpoint URL
+  
+  MaterialSet:
+    Type: String
+    Description: Your Maxis material set for authentication
+    NoEcho: true
+  
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC ID with access to Amazon internal network
+  
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: Private subnet IDs for Lambda (must have NAT gateway or VPC endpoints)
+  
+  SecurityGroupId:
+    Type: AWS::EC2::SecurityGroup::Id
+    Description: Security group allowing outbound HTTPS to Maxis
+
+Resources:
+  # Lambda Function
+  FetchMaxisTicketsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: gsf-fetch-maxis-tickets
+      Description: Fetches unactioned tickets from Maxis API for GSF escalation workflow
+      Handler: index.handler
+      Runtime: nodejs18.x
+      Timeout: 30
+      MemorySize: 256
+      
+      # VPC Configuration for internal network access
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref SecurityGroupId
+        SubnetIds: !Ref SubnetIds
+      
+      # Environment Variables
+      Environment:
+        Variables:
+          MAXIS_ENDPOINT: !Ref MaxisEndpoint
+          MATERIAL_SET: !Ref MaterialSet
+          AWS_REGION: !Ref AWS::Region
+      
+      # IAM Permissions
+      Policies:
+        - VPCAccessPolicy: {}
+        - Version: '2012-10-17'
+          Statement:
+            # CloudWatch Logs
+            - Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/gsf-fetch-maxis-tickets:*'
+            
+            # Secrets Manager (if using for Odin credentials)
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:maxis/*'
+      
+      # API Gateway Event
+      Events:
+        GetTickets:
+          Type: Api
+          Properties:
+            Path: /tickets
+            Method: get
+            RestApiId: !Ref TicketsApi
+  
+  # API Gateway
+  TicketsApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: gsf-maxis-tickets-api
+      StageName: prod
+      Cors:
+        AllowMethods: "'GET, OPTIONS'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+        AllowOrigin: "'*'"  # Update with your Amplify domain
+        MaxAge: "'600'"
+  
+  # CloudWatch Log Group
+  FunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/gsf-fetch-maxis-tickets'
+      RetentionInDays: 14
+
+  # EventBridge Rule for automatic polling (optional)
+  # Uncomment to auto-refresh tickets every 5 minutes
+  # ScheduledPollRule:
+  #   Type: AWS::Events::Rule
+  #   Properties:
+  #     Description: Poll Maxis API every 5 minutes for new tickets
+  #     ScheduleExpression: rate(5 minutes)
+  #     State: ENABLED
+  #     Targets:
+  #       - Arn: !GetAtt FetchMaxisTicketsFunction.Arn
+  #         Id: TicketPollTarget
+  
+  # ScheduledPollPermission:
+  #   Type: AWS::Lambda::Permission
+  #   Properties:
+  #     FunctionName: !Ref FetchMaxisTicketsFunction
+  #     Action: lambda:InvokeFunction
+  #     Principal: events.amazonaws.com
+  #     SourceArn: !GetAtt ScheduledPollRule.Arn
+
+Outputs:
+  ApiUrl:
+    Description: API Gateway endpoint URL
+    Value: !Sub 'https://${TicketsApi}.execute-api.${AWS::Region}.amazonaws.com/prod/tickets'
+    Export:
+      Name: MaxisTicketsApiUrl
+  
+  FunctionArn:
+    Description: Lambda function ARN
+    Value: !GetAtt FetchMaxisTicketsFunction.Arn
+  
+  FunctionName:
+    Description: Lambda function name
+    Value: !Ref FetchMaxisTicketsFunction

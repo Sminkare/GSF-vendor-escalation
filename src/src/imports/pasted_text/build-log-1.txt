@@ -1,0 +1,156 @@
+108
+
+2026-03-14T13:47:36.128Z [INFO]: ╭ Warning ─────────────────────────────────────────────────────────────────────╮
+
+109
+
+                                 │                                                                              │
+
+110
+
+                                 │   Ignored build scripts: @tailwindcss/oxide@4.1.12, esbuild@0.25.12.         │
+
+111
+
+                                 │   Run "pnpm approve-builds" to pick which dependencies should be allowed     │
+
+112
+
+                                 │   to run scripts.                                                            │
+
+113
+
+                                 │                                                                              │
+
+114
+
+                                 ╰──────────────────────────────────────────────────────────────────────────────╯
+
+115
+
+2026-03-14T13:47:36.141Z [INFO]: Done in 6.5s using pnpm v10.32.1
+
+116
+
+2026-03-14T13:47:36.168Z [INFO]: # Completed phase: preBuild
+
+117
+
+                                 # Starting phase: build
+
+118
+
+                                 # Executing command: pnpm run build
+
+119
+
+2026-03-14T13:47:36.387Z [INFO]: > @figma/my-make-file@0.0.1 build /codebuild/output/src3683816034/src/GSF-vendor-escalation
+
+120
+
+                                 > vite build
+
+121
+
+2026-03-14T13:47:37.309Z [INFO]: vite v6.3.5 building for production...
+
+122
+
+2026-03-14T13:47:37.371Z [INFO]: transforming...
+
+123
+
+2026-03-14T13:47:39.099Z [INFO]: ✓ 1694 modules transformed.
+
+124
+
+2026-03-14T13:47:39.271Z [INFO]: rendering chunks...
+
+125
+
+2026-03-14T13:47:39.277Z [INFO]: computing gzip size...
+
+126
+
+2026-03-14T13:47:39.446Z [INFO]: dist/index.html                   0.43 kB │ gzip:   0.28 kB
+
+127
+
+2026-03-14T13:47:39.447Z [INFO]: dist/assets/index-BFZ2SaNL.css   93.91 kB │ gzip:  15.32 kB
+
+128
+
+                                 dist/assets/index-BU3TN-H3.js   344.33 kB │ gzip: 107.31 kB
+
+129
+
+                                 ✓ built in 2.11s
+
+130
+
+2026-03-14T13:47:39.484Z [INFO]: # Completed phase: build
+
+131
+
+                                 ## Completed Frontend Build
+
+132
+
+2026-03-14T13:47:39.571Z [INFO]: ## Build completed successfully
+
+133
+
+2026-03-14T13:47:39.572Z [INFO]: # Starting caching...
+
+134
+
+2026-03-14T13:47:39.574Z [INFO]: # Creating cache artifact...
+
+135
+
+2026-03-14T13:47:59.644Z [INFO]: # Created cache artifact
+
+136
+
+2026-03-14T13:47:59.736Z [INFO]: # Uploading cache artifact...
+
+137
+
+2026-03-14T13:48:08.660Z [INFO]: # Uploaded cache artifact
+
+138
+
+2026-03-14T13:48:08.745Z [INFO]: # Caching completed
+
+139
+
+2026-03-14T13:48:08.770Z [INFO]: # Starting build artifact upload process...
+
+140
+
+2026-03-14T13:48:08.799Z [INFO]: # Uploading build artifact '__artifacts.zip'...
+
+141
+
+2026-03-14T13:48:08.895Z [INFO]: # Build artifact upload completed
+
+142
+
+2026-03-14T13:48:08.896Z [INFO]: # Starting environment caching...
+
+143
+
+2026-03-14T13:48:08.896Z [INFO]: # Uploading environment cache artifact...
+
+144
+
+2026-03-14T13:48:08.959Z [INFO]: # Uploaded environment cache artifact
+
+145
+
+2026-03-14T13:48:08.959Z [INFO]: # Environment caching completed
+
+146
+
+147
+

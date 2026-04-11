@@ -1,0 +1,28 @@
+{
+  "maxis": {
+    "endpoint": "https://maxis-service-integ-pdx.amazon.com",
+    "materialSet": "YOUR_MATERIAL_SET_HERE",
+    "region": "us-west-2",
+    "ticketQuery": {
+      "status": {
+        "OR": ["Assigned", "Researching", "Work In Progress", "Pending"]
+      },
+      "assignedGroup": {
+        "OR": ["GSF Procurement-Soft Services", "SSD-RSR-SPEED"]
+      },
+      "assignee": {
+        "OR": [
+          {
+            "name": "email-alias:gsf-softservice",
+            "id": "email-alias:53792899-79aa-43af-8cc4-86656289b27f"
+          },
+          "kerberos:nobody@ANT.AMAZON.COM",
+          {
+            "name": "email-alias:ssd-rsr-speed-intake",
+            "id": "email-alias:55a4f372-d3e8-41b0-aed6-b224fc51f7ea"
+          }
+        ]
+      }
+    }
+  }
+}

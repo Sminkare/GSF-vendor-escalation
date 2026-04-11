@@ -1,0 +1,166 @@
+
+2026-03-14T13:18:22.599Z [INFO]: # Build environment configured with Standard build compute type: 8GiB Memory, 4vCPUs, 128GB Disk Space
+
+1
+
+2026-03-14T13:18:22.996Z [INFO]: # Cloning repository: git@github.com:Sminkare/GSF-vendor-escalation.git
+
+2
+
+2026-03-14T13:18:23.435Z [INFO]: 
+
+3
+
+2026-03-14T13:18:23.435Z [INFO]: Cloning into 'GSF-vendor-escalation'...
+
+4
+
+2026-03-14T13:18:23.436Z [INFO]: # Checking for Git submodules at: /codebuild/output/src1169126289/src/GSF-vendor-escalation/.gitmodules
+
+5
+
+2026-03-14T13:18:23.441Z [INFO]: # Retrieving environment cache...
+
+6
+
+2026-03-14T13:18:23.483Z [WARNING]: ! Unable to write cache: {"code":"ERR_BAD_REQUEST","message":"Request failed with status code 404"})}
+
+7
+
+2026-03-14T13:18:23.483Z [INFO]: ---- Setting Up SSM Secrets ----
+
+8
+
+2026-03-14T13:18:23.483Z [INFO]: SSM params {"Path":"/amplify/d2blqlv3mgvbtw/main/","WithDecryption":true}
+
+9
+
+2026-03-14T13:18:23.520Z [WARNING]: !Failed to set up process.env.secrets
+
+10
+
+2026-03-14T13:18:24.279Z [INFO]: # No package override configuration found.
+
+11
+
+2026-03-14T13:18:24.282Z [INFO]: # Retrieving cache...
+
+12
+
+2026-03-14T13:18:24.323Z [INFO]: # Retrieved cache
+
+13
+
+2026-03-14T13:18:29.141Z [INFO]: ## Starting Backend Build
+
+14
+
+                                 ## Checking for associated backend environment...
+
+15
+
+                                 ## No backend environment association found, continuing...
+
+16
+
+                                 ## Completed Backend Build
+
+17
+
+2026-03-14T13:18:29.147Z [INFO]: {"backendDuration": 0}
+
+18
+
+                                 ## Starting Frontend Build
+
+19
+
+                                 # Starting phase: preBuild
+
+20
+
+                                 # Executing command: npm ci
+
+21
+
+2026-03-14T13:18:45.339Z [WARNING]: npm error code EUSAGE
+
+22
+
+2026-03-14T13:18:45.346Z [WARNING]: npm error
+
+23
+
+                                    npm error The `npm ci` command can only install with an existing package-lock.json or
+
+24
+
+                                    npm error npm-shrinkwrap.json with lockfileVersion >= 1. Run an install with npm@5 or
+
+25
+
+                                    npm error later to generate a package-lock.json file, then try again.
+
+26
+
+                                    npm error
+
+27
+
+                                    npm error Clean install a project
+
+28
+
+                                    npm error
+
+29
+
+                                    npm error Usage:
+
+30
+
+                                    npm error npm ci
+
+31
+
+                                    npm error
+
+32
+
+                                    npm error Options:
+
+33
+
+                                    npm error [--install-strategy <hoisted|nested|shallow|linked>] [--legacy-bundling]
+
+34
+
+                                    npm error [--global-style] [--omit <dev|optional|peer> [--omit <dev|optional|peer> ...]]
+
+35
+
+                                    npm error [--include <prod|dev|optional|peer> [--include <prod|dev|optional|peer> ...]]
+
+36
+
+                                    npm error [--strict-peer-deps] [--foreground-scripts] [--ignore-scripts] [--no-audit]
+
+37
+
+                                    npm error [--no-bin-links] [--no-fund] [--dry-run]
+
+38
+
+                                    npm error [-w|--workspace <workspace-name> [-w|--workspace <workspace-name> ...]]
+
+39
+
+                                    npm error [-ws|--workspaces] [--include-workspace-root] [--install-links]
+
+40
+
+                                    npm error
+
+41
+
+                                    npm error aliases: clean-install, ic, install-clean, isntall-clean
