@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { TicketList, Ticket } from "./components/ticket-list";
 import { TicketDetails } from "./components/ticket-details";
 import { ActionPanel, ActionDetails } from "./components/action-panel";
@@ -8,225 +8,94 @@ import { Communications, Communication } from "./components/communications";
 import { InformationTab, UploadedFile } from "./components/information-tab";
 import { AuditTrail, AuditEvent } from "./components/audit-trail";
 import { EventManagement, ServiceEvent } from "./components/event-management";
+import { CreateTicketDialog } from "./components/create-ticket-dialog";
+import { Sidebar } from "./components/sidebar";
+import { AnalyticsView } from "./components/analytics-view";
 import { Toaster } from "./components/ui/sonner";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
-
-// Mock data for GSF vendor escalation tickets
-const mockTickets: Ticket[] = [
-  {
-    id: "1",
-    ticketNumber: "V2094350354",
-    title: "[MAV2] [Trash, Recycling, Compost (Waste) Request]",
-    vendor: "Waste Management Services",
-    priority: "none",
-    status: "pending",
-    severity: "4",
-    pendingReason: "Arrival of Technician",
-    rootCause: "MAV2-AFS",
-    category: "GSF Procurement Operations",
-    type: "GSF Soft Services",
-    item: "Waste/Corrugate Removal - Vendor Escalation",
-    site: "MAV2",
-    location: "Chevy Chase - MAF1-Mendel (Chevy Chase, MD, US)",
-    physicalAddress: {
-      building: "Building 3, Loading Dock B",
-      street: "5335 Wisconsin Avenue NW",
-      city: "Chevy Chase",
-      state: "MD",
-      zipCode: "20815",
-    },
-    assignee: "gsf-softservice",
-    requester: "zelfonse",
-    createdDate: "2026-02-01 8:04:31 AM",
-    description: "Two open tops need to be emptied and returned",
-    serviceType: "Trash, Recycling, Compost (Waste)",
-  },
-  {
-    id: "2",
-    ticketNumber: "V2094350355",
-    title: "[SEA9] [Emergency HVAC Repair]",
-    vendor: "Climate Control Solutions",
-    priority: "high",
-    status: "in-progress",
-    severity: "2",
-    pendingReason: "Parts Procurement",
-    rootCause: "SEA9-AFS",
-    category: "GSF Procurement Operations",
-    type: "GSF Soft Services",
-    item: "HVAC - Vendor Escalation",
-    site: "SEA9",
-    location: "Seattle - SEA9-Doppler (Seattle, WA, US)",
-    physicalAddress: {
-      building: "Building B, Floor 3, Mechanical Room",
-      street: "410 Terry Avenue North",
-      city: "Seattle",
-      state: "WA",
-      zipCode: "98109",
-    },
-    assignee: "gsf-softservice",
-    requester: "facility-ops",
-    createdDate: "2026-01-30 2:15:00 PM",
-    description: "HVAC system failure in building B, affecting multiple floors. Urgent repair needed.",
-    serviceType: "HVAC Maintenance",
-  },
-  {
-    id: "3",
-    ticketNumber: "V2094350356",
-    title: "[PDX3] [Janitorial Services - Deep Clean]",
-    vendor: "Professional Cleaning Co",
-    priority: "low",
-    status: "pending",
-    severity: "5",
-    pendingReason: "Scheduling Coordination",
-    rootCause: "PDX3-AFS",
-    category: "GSF Procurement Operations",
-    type: "GSF Soft Services",
-    item: "Janitorial Services - Vendor Escalation",
-    site: "PDX3",
-    location: "Portland - PDX3-Powell (Portland, OR, US)",
-    physicalAddress: {
-      building: "Warehouse 1, Main Floor",
-      street: "1945 SE Powell Boulevard",
-      city: "Portland",
-      state: "OR",
-      zipCode: "97202",
-    },
-    assignee: "gsf-softservice",
-    requester: "site-manager",
-    createdDate: "2026-01-28 10:30:00 AM",
-    description: "Quarterly deep cleaning service for warehouse facility. Need to coordinate with operations for minimal disruption.",
-    serviceType: "Janitorial Services",
-  },
-];
+import { fetchTicketsFromAPI, saveTicketsToStorage } from "./services/ticket-api";
+import { Button } from "./components/ui/button";
+import { RefreshCw } from "lucide-react";
+import { cn } from "./components/ui/utils";
 
 export default function App() {
-  const [tickets, setTickets] = useState<Ticket[]>(mockTickets);
-  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(mockTickets[0]);
-  const [activeTab, setActiveTab] = useState<string>("action");
-  const [emailTemplate, setEmailTemplate] = useState<string>("");
-  const [workflowSteps, setWorkflowSteps] = useState<WorkflowStep[]>([
-    { id: 1, title: "Select Ticket", description: "Choose a ticket", completed: true },
-    { id: 2, title: "Review Details", description: "Check information", completed: false },
-    { id: 3, title: "Action Ticket", description: "Approve or assign", completed: false },
-    { id: 4, title: "Send Email", description: "Notify vendor", completed: false },
-  ]);
-  const [currentStep, setCurrentStep] = useState(2);
-  
-  // Communications state - store communications per ticket
-  const [ticketCommunications, setTicketCommunications] = useState<Record<string, Communication[]>>({
-    "1": [
-      {
-        id: "1",
-        author: "Sarah Johnson",
-        role: "GSF Procurement",
-        message: "Contacted vendor regarding the two open tops. Waiting for confirmation on pickup schedule.",
-        timestamp: "2026-02-03 9:15 AM",
-        type: "internal",
-        isRead: true,
-      },
-      {
-        id: "2",
-        author: "Mike Chen",
-        role: "Site Manager - MAV2",
-        message: "Containers are located at loading dock B. Site contact is available Monday-Friday 8am-5pm.",
-        timestamp: "2026-02-03 10:30 AM",
-        type: "internal",
-        isRead: true,
-      },
-    ],
-    "2": [
-      {
-        id: "1",
-        author: "Alex Rivera",
-        role: "Facilities Engineer",
-        message: "HVAC unit showing error code E-42. Vendor has been notified and parts are on order.",
-        timestamp: "2026-01-31 2:45 PM",
-        type: "internal",
-        isRead: true,
-      },
-    ],
-    "3": [],
-  });
+  const [activeView, setActiveView] = useState<"workflow" | "analytics">("workflow");
+  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
+  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
-  // Track unread vendor emails per ticket
-  const [unreadVendorEmails, setUnreadVendorEmails] = useState<Record<string, number>>({
-    "1": 0,
-    "2": 0,
-    "3": 0,
-  });
+  // Load tickets on mount and set up auto-refresh
+  useEffect(() => {
+    loadTickets();
+    
+    // Auto-refresh every 2 minutes
+    const refreshInterval = setInterval(() => {
+      loadTickets(true); // Silent refresh
+    }, 2 * 60 * 1000);
+    
+    return () => clearInterval(refreshInterval);
+  }, []);
 
-  // Files state - store uploaded files per ticket
-  const [ticketFiles, setTicketFiles] = useState<Record<string, UploadedFile[]>>({
-    "1": [],
-    "2": [],
-    "3": [],
-  });
+  // Load tickets from API
+  const loadTickets = async (silent = false) => {
+    if (!silent) {
+      setIsLoading(true);
+    }
+    
+    try {
+      const fetchedTickets = await fetchTicketsFromAPI();
+      setTickets(fetchedTickets);
+      setLastRefresh(new Date());
+      
+      if (!silent && fetchedTickets.length > 0) {
+        toast.success(`Loaded ${fetchedTickets.length} tickets from queue`);
+      }
+    } catch (error) {
+      console.error("Failed to load tickets:", error);
+      toast.error("Failed to load tickets from API");
+    } finally {
+      if (!silent) {
+        setIsLoading(false);
+      }
+    }
+  };
 
-  // Audit events state - store audit trail per ticket
-  const [ticketAuditEvents, setTicketAuditEvents] = useState<Record<string, AuditEvent[]>>({
-    "1": [
-      {
-        id: "1",
-        timestamp: "2026-02-01 8:04:31 AM",
-        user: "zelfonse",
-        action: "Ticket Created",
-        details: "Ticket V2094350354 created via automated workflow",
-        type: "status-change",
-      },
-      {
-        id: "2",
-        timestamp: "2026-02-01 10:15 AM",
-        user: "gsf-softservice",
-        action: "Ticket Assigned",
-        details: "Assigned to GSF Soft Services team",
-        type: "assignment",
-      },
-      {
-        id: "3",
-        timestamp: "2026-02-03 9:15 AM",
-        user: "Sarah Johnson",
-        action: "Vendor Contacted",
-        details: "Initial contact email sent to Waste Management Services",
-        type: "email-sent",
-      },
-    ],
-    "2": [],
-    "3": [],
-  });
+  // Manual refresh
+  const handleRefresh = () => {
+    toast.info("Refreshing tickets...");
+    loadTickets();
+  };
 
-  // Service events state - store events per ticket
-  const [ticketEvents, setTicketEvents] = useState<Record<string, ServiceEvent[]>>({
-    "1": [
-      {
-        id: "1",
-        title: "Scheduled Pickup",
-        description: "Vendor scheduled to pick up two open top containers",
-        scheduledDate: "2026-02-08",
-        scheduledTime: "10:00",
-        location: "Loading Dock B",
-        assignedTo: "Waste Management Services",
-        status: "scheduled",
-        createdBy: "Sarah Johnson",
-        createdAt: "2026-02-03 9:30 AM",
-      },
-    ],
-    "2": [
-      {
-        id: "1",
-        title: "Parts Delivery",
-        description: "HVAC replacement parts arriving",
-        scheduledDate: "2026-02-05",
-        scheduledTime: "14:00",
-        location: "SEA9 Building B",
-        assignedTo: "Climate Control Solutions",
-        status: "in-progress",
-        createdBy: "Alex Rivera",
-        createdAt: "2026-01-31 3:15 PM",
-      },
-    ],
-    "3": [],
-  });
+  // Create new ticket
+  const handleCreateTicket = (newTicket: Ticket) => {
+    const updatedTickets = [newTicket, ...tickets];
+    setTickets(updatedTickets);
+    saveTicketsToStorage(updatedTickets);
+    setSelectedTicket(newTicket);
+    setIsCreateDialogOpen(false);
+    
+    // Create initial audit trail entry
+    const auditEvent: AuditEvent = {
+      id: Date.now().toString(),
+      timestamp: newTicket.createdDate,
+      user: "Current User",
+      action: "Ticket Created",
+      details: `Ticket ${newTicket.ticketNumber} created manually`,
+      type: "status-change",
+    };
+    
+    setTicketAuditEvents((prev) => ({
+      ...prev,
+      [newTicket.id]: [auditEvent],
+    }));
+    
+    toast.success("Ticket created successfully", {
+      description: `${newTicket.ticketNumber} has been added to the queue.`,
+    });
+  };
 
   const handleActionComplete = (action: string, details: ActionDetails) => {
     if (!selectedTicket) return;
@@ -277,6 +146,7 @@ export default function App() {
       ticket.id === selectedTicket.id ? { ...ticket, status: newStatus } : ticket
     );
     setTickets(updatedTickets);
+    saveTicketsToStorage(updatedTickets);
     setSelectedTicket({ ...selectedTicket, status: newStatus });
 
     // Update workflow
@@ -305,6 +175,7 @@ export default function App() {
       ticket.id === selectedTicket.id ? { ...ticket, status: "completed" as const } : ticket
     );
     setTickets(updatedTickets);
+    saveTicketsToStorage(updatedTickets);
     setSelectedTicket({ ...selectedTicket, status: "completed" });
   };
 
@@ -449,6 +320,7 @@ export default function App() {
     });
 
     setTickets(updatedTickets);
+    saveTicketsToStorage(updatedTickets);
     
     // Update selected ticket
     if (selectedTicket?.id === ticketId) {
@@ -563,100 +435,168 @@ export default function App() {
     toast.success("Event deleted");
   };
 
+  const [activeTab, setActiveTab] = useState<string>("action");
+  const [emailTemplate, setEmailTemplate] = useState<string>("");
+  const [workflowSteps, setWorkflowSteps] = useState<WorkflowStep[]>([
+    { id: 1, title: "Select Ticket", description: "Choose a ticket", completed: true },
+    { id: 2, title: "Review Details", description: "Check information", completed: false },
+    { id: 3, title: "Action Ticket", description: "Approve or assign", completed: false },
+    { id: 4, title: "Send Email", description: "Notify vendor", completed: false },
+  ]);
+  const [currentStep, setCurrentStep] = useState(2);
+  
+  // Communications state - store communications per ticket
+  const [ticketCommunications, setTicketCommunications] = useState<Record<string, Communication[]>>({});
+
+  // Track unread vendor emails per ticket
+  const [unreadVendorEmails, setUnreadVendorEmails] = useState<Record<string, number>>({});
+
+  // Files state - store uploaded files per ticket
+  const [ticketFiles, setTicketFiles] = useState<Record<string, UploadedFile[]>>({});
+
+  // Audit events state - store audit trail per ticket
+  const [ticketAuditEvents, setTicketAuditEvents] = useState<Record<string, AuditEvent[]>>({});
+
+  // Service events state - store events per ticket
+  const [ticketEvents, setTicketEvents] = useState<Record<string, ServiceEvent[]>>({});
+
   return (
-    <div className="min-h-screen bg-slate-50 p-8">
+    <div className="min-h-screen bg-slate-50 flex">
       <Toaster />
+      <Sidebar activeView={activeView} onViewChange={setActiveView} />
       
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="mb-2">GSF Vendor Escalation Workflow</h1>
-          <p className="text-muted-foreground">
-            Manage GSF procurement tickets and communicate with vendors
-          </p>
-        </div>
-
-        {/* Workflow Stepper */}
-        <div className="bg-white rounded-lg p-6 shadow-sm">
-          <WorkflowStepper steps={workflowSteps} currentStep={currentStep} />
-        </div>
-
-        {/* Main Content */}
-        <div className="grid grid-cols-3 gap-6">
-          {/* Left Column - Ticket List */}
-          <div className="col-span-1">
-            <TicketList
-              tickets={tickets}
-              selectedTicket={selectedTicket}
-              onSelectTicket={handleSelectTicket}
-            />
-          </div>
-
-          {/* Right Column - Ticket Details and Actions */}
-          <div className="col-span-2 space-y-6">
-            {selectedTicket ? (
-              <>
-                <TicketDetails ticket={selectedTicket} onUpdateTicket={handleUpdateTicket} />
-                
-                {/* Communications Section */}
-                <Communications
-                  ticketId={selectedTicket.id}
-                  communications={ticketCommunications[selectedTicket.id] || []}
-                  onAddCommunication={handleAddCommunication}
-                  onSimulateVendorEmail={handleSimulateVendorEmail}
-                  onMarkEmailsRead={handleMarkEmailsRead}
-                  unreadVendorEmails={unreadVendorEmails[selectedTicket.id] || 0}
-                />
-                
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                  <TabsList className="grid w-full grid-cols-5">
-                    <TabsTrigger value="action">Action</TabsTrigger>
-                    <TabsTrigger value="email">Email</TabsTrigger>
-                    <TabsTrigger value="information">Information</TabsTrigger>
-                    <TabsTrigger value="audit">Audit Trail</TabsTrigger>
-                    <TabsTrigger value="events">Events</TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="action" className="mt-4">
-                    <ActionPanel onActionComplete={handleActionComplete} />
-                  </TabsContent>
-                  
-                  <TabsContent value="email" className="mt-4">
-                    <EmailComposer 
-                      ticket={selectedTicket} 
-                      onEmailSent={handleEmailSent}
-                      initialTemplate={emailTemplate}
-                    />
-                  </TabsContent>
-
-                  <TabsContent value="information" className="mt-4">
-                    <InformationTab
-                      files={ticketFiles[selectedTicket.id] || []}
-                      onFileUpload={handleFileUpload}
-                      onFileDelete={handleFileDelete}
-                    />
-                  </TabsContent>
-
-                  <TabsContent value="audit" className="mt-4">
-                    <AuditTrail events={ticketAuditEvents[selectedTicket.id] || []} />
-                  </TabsContent>
-
-                  <TabsContent value="events" className="mt-4">
-                    <EventManagement
-                      events={ticketEvents[selectedTicket.id] || []}
-                      onAddEvent={handleAddEvent}
-                      onUpdateEventStatus={handleUpdateEventStatus}
-                      onDeleteEvent={handleDeleteEvent}
-                    />
-                  </TabsContent>
-                </Tabs>
-              </>
-            ) : (
-              <div className="bg-white rounded-lg p-12 text-center text-muted-foreground">
-                Select a ticket to view details and take action
+      <div className={cn(
+        "flex-1 transition-all duration-300",
+        "lg:ml-64"
+      )}>
+        <div className="p-8">
+          <CreateTicketDialog 
+            open={isCreateDialogOpen} 
+            onOpenChange={setIsCreateDialogOpen}
+            onCreateTicket={handleCreateTicket}
+          />
+          
+          {activeView === "analytics" ? (
+            <div className="max-w-7xl mx-auto">
+              <AnalyticsView tickets={tickets} allAuditEvents={ticketAuditEvents} />
+            </div>
+          ) : (
+            <div className="max-w-7xl mx-auto space-y-6">
+              {/* Header */}
+              <div className="mb-8">
+                <h1 className="mb-2">GSF Vendor Escalation Workflow</h1>
+                <p className="text-muted-foreground">
+                  Manage GSF procurement tickets and communicate with vendors
+                </p>
               </div>
-            )}
-          </div>
+
+              {/* Workflow Stepper */}
+              <div className="bg-white rounded-lg p-6 shadow-sm">
+                <WorkflowStepper steps={workflowSteps} currentStep={currentStep} />
+              </div>
+
+              {/* Main Content */}
+              <div className="grid grid-cols-3 gap-6">
+                {/* Left Column - Ticket List */}
+                <div className="col-span-1">
+                  <TicketList
+                    tickets={tickets}
+                    selectedTicket={selectedTicket}
+                    onSelectTicket={handleSelectTicket}
+                    isLoading={isLoading}
+                    lastRefresh={lastRefresh}
+                  />
+                  <div className="mt-4 space-y-2">
+                    <Button
+                      className="w-full"
+                      variant="default"
+                      onClick={() => setIsCreateDialogOpen(true)}
+                    >
+                      + New Ticket
+                    </Button>
+                    <Button
+                      className="w-full"
+                      variant="outline"
+                      onClick={handleRefresh}
+                      disabled={isLoading}
+                    >
+                      <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                      {isLoading ? 'Refreshing...' : 'Refresh Tickets'}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-center text-muted-foreground mt-2">
+                    Auto-refreshes every 2 minutes
+                  </p>
+                </div>
+
+                {/* Right Column - Ticket Details and Actions */}
+                <div className="col-span-2 space-y-6">
+                  {selectedTicket ? (
+                    <>
+                      <TicketDetails ticket={selectedTicket} onUpdateTicket={handleUpdateTicket} />
+                      
+                      {/* Communications Section */}
+                      <Communications
+                        ticketId={selectedTicket.id}
+                        communications={ticketCommunications[selectedTicket.id] || []}
+                        onAddCommunication={handleAddCommunication}
+                        onSimulateVendorEmail={handleSimulateVendorEmail}
+                        onMarkEmailsRead={handleMarkEmailsRead}
+                        unreadVendorEmails={unreadVendorEmails[selectedTicket.id] || 0}
+                      />
+                      
+                      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                        <TabsList className="grid w-full grid-cols-5">
+                          <TabsTrigger value="action">Action</TabsTrigger>
+                          <TabsTrigger value="email">Email</TabsTrigger>
+                          <TabsTrigger value="information">Information</TabsTrigger>
+                          <TabsTrigger value="audit">Audit Trail</TabsTrigger>
+                          <TabsTrigger value="events">Events</TabsTrigger>
+                        </TabsList>
+                        
+                        <TabsContent value="action" className="mt-4">
+                          <ActionPanel onActionComplete={handleActionComplete} />
+                        </TabsContent>
+                        
+                        <TabsContent value="email" className="mt-4">
+                          <EmailComposer 
+                            ticket={selectedTicket} 
+                            onEmailSent={handleEmailSent}
+                            initialTemplate={emailTemplate}
+                          />
+                        </TabsContent>
+
+                        <TabsContent value="information" className="mt-4">
+                          <InformationTab
+                            files={ticketFiles[selectedTicket.id] || []}
+                            onFileUpload={handleFileUpload}
+                            onFileDelete={handleFileDelete}
+                          />
+                        </TabsContent>
+
+                        <TabsContent value="audit" className="mt-4">
+                          <AuditTrail events={ticketAuditEvents[selectedTicket.id] || []} />
+                        </TabsContent>
+
+                        <TabsContent value="events" className="mt-4">
+                          <EventManagement
+                            events={ticketEvents[selectedTicket.id] || []}
+                            onAddEvent={handleAddEvent}
+                            onUpdateEventStatus={handleUpdateEventStatus}
+                            onDeleteEvent={handleDeleteEvent}
+                          />
+                        </TabsContent>
+                      </Tabs>
+                    </>
+                  ) : (
+                    <div className="bg-white rounded-lg p-12 text-center text-muted-foreground">
+                      Select a ticket to view details and take action
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
