@@ -11,16 +11,30 @@ import { EventManagement, ServiceEvent } from "./components/event-management";
 import { CreateTicketDialog } from "./components/create-ticket-dialog";
 import { Sidebar } from "./components/sidebar";
 import { AnalyticsView } from "./components/analytics-view";
+import Presentation from "./presentation";
 import { Toaster } from "./components/ui/sonner";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
 import { fetchTicketsFromAPI, saveTicketsToStorage } from "./services/ticket-api";
 import { Button } from "./components/ui/button";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Presentation as PresentationIcon } from "lucide-react";
 import { cn } from "./components/ui/utils";
 
 export default function App() {
+  const [presentationMode, setPresentationMode] = useState(false);
   const [activeView, setActiveView] = useState<"workflow" | "analytics">("workflow");
+  
+  // Check URL for presentation mode
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('mode') === 'presentation') {
+      setPresentationMode(true);
+    }
+  }, []);
+  
+  if (presentationMode) {
+    return <Presentation />;
+  }
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -483,11 +497,21 @@ export default function App() {
           ) : (
             <div className="max-w-7xl mx-auto space-y-6">
               {/* Header */}
-              <div className="mb-8">
-                <h1 className="mb-2">GSF Vendor Escalation Workflow</h1>
-                <p className="text-muted-foreground">
-                  Manage GSF procurement tickets and communicate with vendors
-                </p>
+              <div className="mb-8 flex items-center justify-between">
+                <div>
+                  <h1 className="mb-2">GSF Vendor Escalation Workflow</h1>
+                  <p className="text-muted-foreground">
+                    Manage GSF procurement tickets and communicate with vendors
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={() => window.open('?mode=presentation', '_blank')}
+                  className="gap-2"
+                >
+                  <PresentationIcon className="h-4 w-4" />
+                  View Presentation
+                </Button>
               </div>
 
               {/* Workflow Stepper */}
