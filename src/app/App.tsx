@@ -1,3 +1,5 @@
+Copy ALL of this (628 lines):
+
 import { useState, useEffect } from "react";
 import { TicketList, Ticket } from "./components/ticket-list";
 import { TicketDetails } from "./components/ticket-details";
@@ -28,22 +30,6 @@ export default function App() {
   }
   
   const [activeView, setActiveView] = useState<"workflow" | "analytics">("workflow");
-  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
-Delete these old lines (they're no longer needed):
-const [presentationMode, setPresentationMode] = useState(false);
-const [activeView, setActiveView] = useState<"workflow" | "analytics">("workflow");
-
-// Check URL for presentation mode
-useEffect(() => {
-  const params = new URLSearchParams(window.location.search);
-  if (params.get('mode') === 'presentation') {
-    setPresentationMode(true);
-  }
-}, []);
-
-if (presentationMode) {
-  return <Presentation />;
-}
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [isLoading, setIsLoading] = useState(true);
