@@ -21,20 +21,29 @@ import { RefreshCw, Presentation as PresentationIcon } from "lucide-react";
 import { cn } from "./components/ui/utils";
 
 export default function App() {
-  const [presentationMode, setPresentationMode] = useState(false);
-  const [activeView, setActiveView] = useState<"workflow" | "analytics">("workflow");
-  
-  // Check URL for presentation mode
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('mode') === 'presentation') {
-      setPresentationMode(true);
-    }
-  }, []);
-  
-  if (presentationMode) {
+  // Check URL for presentation mode immediately
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('mode') === 'presentation') {
     return <Presentation />;
   }
+  
+  const [activeView, setActiveView] = useState<"workflow" | "analytics">("workflow");
+  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
+Delete these old lines (they're no longer needed):
+const [presentationMode, setPresentationMode] = useState(false);
+const [activeView, setActiveView] = useState<"workflow" | "analytics">("workflow");
+
+// Check URL for presentation mode
+useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('mode') === 'presentation') {
+    setPresentationMode(true);
+  }
+}, []);
+
+if (presentationMode) {
+  return <Presentation />;
+}
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [isLoading, setIsLoading] = useState(true);
