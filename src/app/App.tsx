@@ -1,4 +1,3 @@
-Copy ALL of this (628 lines):
 
 import { useState, useEffect } from "react";
 import { TicketList, Ticket } from "./components/ticket-list";
@@ -621,3 +620,4 @@ export default function App() {
     </div>
   );
 }
+
