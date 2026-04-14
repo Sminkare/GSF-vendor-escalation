@@ -1,16 +1,8 @@
-Right! Let's fix the deployment NOW.
-
-The error says it can't find ./services/ticket-api - I gave you the code earlier but you need to upload it to GitHub.
-
-Let me give you a complete checklist of what to upload:
-
-Upload These 2 Files to GitHub:
-File 1: src/app/services/ticket-api.ts
-Go to GitHub → Add file → Create new file → Name: src/app/services/ticket-api.ts
-
-Paste this:
-
 import { Ticket } from "../components/ticket-list";
+
+/**
+ * Service for interacting with the Maxis ticketing API
+ */
 
 export interface MaxisTicket {
   id: string;
@@ -40,7 +32,11 @@ export interface MaxisTicket {
   rootCause?: string;
 }
 
+/**
+ * Transform Maxis API ticket to app Ticket format
+ */
 export function transformMaxisTicket(maxisTicket: MaxisTicket): Ticket {
+  // Map Maxis status to app status
   const statusMap: Record<string, "pending" | "in-progress" | "completed" | "awaiting-vendor"> = {
     "Pending": "pending",
     "Assigned": "pending",
@@ -51,6 +47,7 @@ export function transformMaxisTicket(maxisTicket: MaxisTicket): Ticket {
     "Awaiting Vendor": "awaiting-vendor",
   };
 
+  // Determine priority based on severity
   const priorityMap: Record<string, "high" | "medium" | "low" | "none"> = {
     "1": "high",
     "2": "high",
@@ -93,6 +90,9 @@ export function transformMaxisTicket(maxisTicket: MaxisTicket): Ticket {
   };
 }
 
+/**
+ * Format location for display
+ */
 function formatLocation(location?: MaxisTicket["location"]): string {
   if (!location) return "Location Unknown";
   
@@ -106,6 +106,9 @@ function formatLocation(location?: MaxisTicket["location"]): string {
   return parts.join(" - ") || "Location Unknown";
 }
 
+/**
+ * Format date from ISO to readable format
+ */
 function formatDate(dateString: string): string {
   try {
     const date = new Date(dateString);
@@ -123,15 +126,22 @@ function formatDate(dateString: string): string {
   }
 }
 
+// Use an empty array for mock tickets so the queue starts empty
 export const mockTickets: Ticket[] = [];
 
+/**
+ * Fetch tickets from Maxis API via Lambda backend
+ */
 export async function fetchTicketsFromAPI(): Promise<Ticket[]> {
+  // Check if API mode is enabled
   const useAPI = import.meta.env.VITE_USE_API === 'true';
   
   if (!useAPI) {
     console.log('Using mock data / local storage (API mode disabled)');
+    // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 300));
     
+    // Load from local storage
     try {
       const saved = localStorage.getItem('gsf_tickets');
       if (saved) {
@@ -144,6 +154,8 @@ export async function fetchTicketsFromAPI(): Promise<Ticket[]> {
   }
 
   try {
+    // TODO: Replace with your actual Lambda API endpoint URL
+    // This will be created when you deploy the Lambda function
     const apiEndpoint = import.meta.env.VITE_MAXIS_API_ENDPOINT || "/api/tickets";
     
     console.log('Fetching tickets from API:', apiEndpoint);
@@ -161,6 +173,7 @@ export async function fetchTicketsFromAPI(): Promise<Ticket[]> {
 
     const data = await response.json();
     
+    // Transform Maxis tickets to app format
     const tickets: Ticket[] = data.tickets.map((maxisTicket: MaxisTicket) => 
       transformMaxisTicket(maxisTicket)
     );
@@ -169,20 +182,15 @@ export async function fetchTicketsFromAPI(): Promise<Ticket[]> {
     return tickets;
   } catch (error) {
     console.error("Error fetching tickets from Maxis API:", error);
-    console.log('Falling back to local storage');
-    
-    try {
-      const saved = localStorage.getItem('gsf_tickets');
-      if (saved) {
-        return JSON.parse(saved);
-      }
-    } catch (e) {
-      console.error("Failed to load tickets from local storage", e);
-    }
-    return [];
+    console.log('Falling back to mock data');
+    // Fall back to mock data if API fails
+    return generateMockTickets();
   }
 }
 
+/**
+ * Fetch a single ticket by ID from Maxis API
+ */
 export async function fetchTicketById(ticketId: string): Promise<Ticket | null> {
   try {
     const apiEndpoint = import.meta.env.VITE_MAXIS_API_ENDPOINT || "/api/tickets";
@@ -207,6 +215,9 @@ export async function fetchTicketById(ticketId: string): Promise<Ticket | null> 
   }
 }
 
+/**
+ * Save tickets to LocalStorage when not using real API
+ */
 export function saveTicketsToStorage(tickets: Ticket[]) {
   try {
     localStorage.setItem('gsf_tickets', JSON.stringify(tickets));
