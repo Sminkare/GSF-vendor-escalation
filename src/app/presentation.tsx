@@ -497,14 +497,27 @@ const slides: Slide[] = [
     subtitle: "Let's take a look",
     content: (
       <div className="flex flex-col items-center justify-center h-full space-y-12">
-        <h2 className="text-5xl font-bold text-slate-900 text-center">Questions & Demo</h2>
+       <h2 className="text-5xl font-bold text-slate-900 text-center">Questions & Demo</h2>
         <div className="space-y-8 text-center">
           <div className="bg-white p-8 rounded-xl shadow-lg">
             <p className="text-2xl text-slate-700 mb-4">
               <strong>Live Demo Available</strong>
             </p>
-            <p className="text-xl text-blue-600">
-              [Your AWS Amplify URL]
+            <a 
+              href="https://main.d2blqlv3mgvbtw.amplifyapp.com/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-xl text-blue-600 hover:text-blue-800 underline"
+            >
+              https://main.d2blqlv3mgvbtw.amplifyapp.com/
+            </a>
+          </div>
+          <div className="bg-slate-100 p-6 rounded-xl">
+            <p className="text-xl text-slate-700 mb-2">
+              <strong>Contact:</strong>
+            </p>
+            <p className="text-lg text-blue-600">
+              Sminkare@amazon.com
             </p>
           </div>
           <div className="text-4xl space-y-4">
