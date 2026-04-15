@@ -369,7 +369,7 @@ const slides: Slide[] = [
             <p className="text-xl">Pilot - 2 weeks</p>
           </div>
           <div className="bg-gradient-to-r from-green-500 to-green-700 text-white p-8 rounded-xl">
-            <h3 className="text-2xl font-bold mb-2">Phase 2: GSF Hard Services</h3>
+            <h3 className="text-2xl font-bold mb-2">Phase 2: Other Non Grocery Teams</h3>
             <p className="text-xl">Rollout - 4 weeks</p>
           </div>
           <div className="bg-gradient-to-r from-purple-500 to-purple-700 text-white p-8 rounded-xl">
